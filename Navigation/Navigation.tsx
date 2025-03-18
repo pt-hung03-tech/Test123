@@ -6,7 +6,7 @@ import OnboardingScreen from "../screens/OnboardingScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import AddnewScreen from "../screens/AddnewScreen";
-import BottomTabNavigator from "./BottomTabNavigator"; // ✅ Thêm thanh điều hướng dưới
+import BottomTabNavigator from "./BottomTabNavigator"; // ✅ Thêm thanh điều hướng dưới 
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -18,6 +18,7 @@ export type RootStackParamList = {
   NotificationScreen: undefined;
   Home: undefined;
   ProfileScreen : undefined;
+  DetailsScreen : undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -45,6 +46,7 @@ const Navigation = () => {
         <Stack.Screen name="MenuScreen" component={BottomTabNavigator} />
         <Stack.Screen name="NotificationScreen" component={BottomTabNavigator}/>
         <Stack.Screen name="ProfileScreen" component={BottomTabNavigator}/>
+        <Stack.Screen name="DetailsScreen" component={BottomTabNavigator}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

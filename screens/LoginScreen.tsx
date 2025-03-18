@@ -1,18 +1,15 @@
-import { RootStackParamList } from "@/Navigation/Navigation";
-import { RouteProp } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Alert } from "react-native";
 import { Checkbox } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-
+import { RootStackParamList } from "@/Navigation/Navigation";
+import { StackNavigationProp } from "@react-navigation/stack";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, "LoginScreen">;
-type LoginScreenRouteProp = RouteProp<RootStackParamList, "LoginScreen">;
 
 interface Props {
   navigation: LoginScreenNavigationProp;
-  route: LoginScreenRouteProp;
 }
 
 const { width, height } = Dimensions.get("window");
@@ -23,12 +20,50 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [secureText, setSecureText] = useState(true);
   const [rememberMe, setRememberMe] = useState(false);
 
+  const SERVER_URL = 'http://192.168.1.13:8000/api/login/'; // Đổi IP thành IP thật trong mạng
+
+  const handleLogin = async () => {
+    try {
+      console.log("🔍 Đang gửi request đến:", SERVER_URL);
+      const response = await fetch(SERVER_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: email,
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Lỗi không xác định");
+      }
+
+      const data = await response.json();
+      console.log("✅ Đăng nhập thành công:", data);
+
+      const token = data.token;
+      if (token) {
+        await AsyncStorage.setItem('userToken', token);
+        Alert.alert("Thành công", "Đăng nhập thành công!");
+        navigation.navigate("Home");
+      } else {
+        throw new Error("Không nhận được token từ server");
+      }
+    } catch (error) {
+      console.error("❌ Lỗi kết nối:", error);
+      Alert.alert("Lỗi", error instanceof Error ? error.message : "Không thể kết nối đến máy chủ!");
+    }
+  };
+  
   return (
     <View style={styles.container}>
       {/* Phần trên (Header - Màu đen) */}
       <View style={styles.header}>
-        <Text style={styles.title}>Log In</Text>
-        <Text style={styles.subtitle}>Please sign in to your existing account</Text>
+        <Text style={styles.title}>Đăng Nhập</Text>
+        <Text style={styles.subtitle}>Vui lòng đăng nhập vào tài khoản hiện có của bạn</Text>
       </View>
 
       {/* Phần dưới (Form - Màu trắng) */}
@@ -39,7 +74,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.label}>EMAIL</Text>
             <TextInput
               style={styles.input}
-              placeholder="example@gmail.com"
+              placeholder="ví dụ@gmail.com"
               placeholderTextColor="#B0B0B0"
               keyboardType="email-address"
               value={email}
@@ -49,7 +84,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
           {/* Password Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>PASSWORD</Text>
+            <Text style={styles.label}>MẬT KHẨU</Text>
             <View style={styles.passwordContainer}>
               <TextInput
                 style={styles.input}
@@ -69,30 +104,30 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.rowContainer}>
             <TouchableOpacity onPress={() => setRememberMe(!rememberMe)} style={styles.rememberMe}>
               <Checkbox.Android status={rememberMe ? "checked" : "unchecked"} color="#FF6600" />
-              <Text style={styles.rememberMeText}>Remember me</Text>
+              <Text style={styles.rememberMeText}>Ghi nhớ tôi</Text>
             </TouchableOpacity>
             <TouchableOpacity>
-              <Text style={styles.forgotPassword}>Forgot Password</Text>
+              <Text style={styles.forgotPassword}>Quên mật khẩu</Text>
             </TouchableOpacity>
           </View>
 
           {/* Login Button */}
           <TouchableOpacity 
             style={styles.loginButton}
-            onPress={() => navigation.navigate("Home")}>
-            <Text style={styles.loginText}>LOG IN</Text>
+            onPress={handleLogin}>
+            <Text style={styles.loginText}>ĐĂNG NHẬP</Text>
           </TouchableOpacity>
 
           {/* Sign Up */}
           <View style={styles.signUpContainer}>
-            <Text style={styles.signUpText}>Don't have an account?</Text>
+            <Text style={styles.signUpText}>Chưa có tài khoản?</Text>
             <TouchableOpacity onPress={() => navigation.navigate("RegisterScreen")}>
-              <Text style={styles.signUpLink}> SIGN UP</Text>
+              <Text style={styles.signUpLink}> ĐĂNG KÝ</Text>
             </TouchableOpacity>
           </View>
 
           {/* Social Login */}
-          <Text style={styles.orText}>Or</Text>
+          <Text style={styles.orText}>Hoặc</Text>
           <View style={styles.socialContainer}>
             <TouchableOpacity style={styles.socialButton}>
               <Icon name="facebook" size={24} color="#FFF" />
@@ -110,6 +145,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
+// Styles giữ nguyên như trước
 const styles = StyleSheet.create({
   container: {
     flex: 1,

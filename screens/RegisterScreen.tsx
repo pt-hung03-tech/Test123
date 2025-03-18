@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { RootStackParamList } from "@/Navigation/Navigation";
 import { RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Alert } from "react-native";
 import { Checkbox } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
@@ -24,12 +24,61 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [secureTextConfirm, setSecureTextConfirm] = useState(true);
   const [agreeTerms, setAgreeTerms] = useState(false);
 
+  const SERVER_URL = 'http://192.168.1.13:8000/api/register/'; // Đổi IP thành IP thật trong mạng
+
+  const handleRegister = async () => {
+    try {
+      // Kiểm tra các trường bắt buộc
+      if (!email || !password || !confirmPassword) {
+        Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin!");
+        return;
+      }
+
+      // Kiểm tra password và confirm password
+      if (password !== confirmPassword) {
+        Alert.alert("Lỗi", "Mật khẩu và xác nhận mật khẩu không khớp!");
+        return;
+      }
+
+      // Kiểm tra điều khoản
+      if (!agreeTerms) {
+        Alert.alert("Lỗi", "Vui lòng đồng ý với điều khoản và điều kiện!");
+        return;
+      }
+
+      console.log("🔍 Đang gửi request đến:", SERVER_URL);
+      const response = await fetch(SERVER_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: email,
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Lỗi không xác định");
+      }
+
+      const data = await response.json();
+      console.log("✅ Đăng ký thành công:", data);
+      Alert.alert("Thành công", "Đăng ký thành công! Vui lòng đăng nhập.");
+      navigation.navigate("LoginScreen"); // Chuyển về màn hình đăng nhập sau khi đăng ký thành công
+    } catch (error) {
+      console.error("❌ Lỗi kết nối:", error);
+      Alert.alert("Lỗi", error instanceof Error ? error.message : "Không thể kết nối đến máy chủ!");
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Phần trên (Header - Màu đen) */}
       <View style={styles.header}>
-        <Text style={styles.title}>Sign Up</Text>
-        <Text style={styles.subtitle}>Create a new account</Text>
+        <Text style={styles.title}>Đăng Ký</Text>
+        <Text style={styles.subtitle}>Tạo tài khoản mới</Text>
       </View>
 
       {/* Phần dưới (Form - Màu trắng) */}
@@ -40,7 +89,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.label}>EMAIL</Text>
             <TextInput
               style={styles.input}
-              placeholder="example@gmail.com"
+              placeholder="ví dụ@gmail.com"
               placeholderTextColor="#B0B0B0"
               keyboardType="email-address"
               value={email}
@@ -50,7 +99,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
           {/* Password Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>PASSWORD</Text>
+            <Text style={styles.label}>MẬT KHẨU</Text>
             <View style={styles.passwordContainer}>
               <TextInput
                 style={styles.input}
@@ -68,12 +117,12 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
           {/* Confirm Password Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>CONFIRM PASSWORD</Text>
+            <Text style={styles.label}>XÁC NHẬN MẬT KHẨU</Text>
             <View style={styles.passwordContainer}>
               <TextInput
                 style={styles.input}
                 placeholder="********"
-                placeholderTextColor="#B0B0B0"
+                placeholderTextColor="#000"
                 secureTextEntry={secureTextConfirm}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -88,25 +137,25 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.rowContainer}>
             <TouchableOpacity onPress={() => setAgreeTerms(!agreeTerms)} style={styles.rememberMe}>
               <Checkbox.Android status={agreeTerms ? "checked" : "unchecked"} color="#FF6600" />
-              <Text style={styles.rememberMeText}>I agree to the Terms & Conditions</Text>
+              <Text style={styles.rememberMeText}>Tôi đồng ý với Điều khoản & Điều kiện</Text>
             </TouchableOpacity>
           </View>
 
           {/* Register Button */}
-          <TouchableOpacity style={styles.loginButton}>
-            <Text style={styles.loginText}>SIGN UP</Text>
+          <TouchableOpacity style={styles.loginButton} onPress={handleRegister}>
+            <Text style={styles.loginText}>ĐĂNG KÝ</Text>
           </TouchableOpacity>
 
           {/* Already have an account */}
           <View style={styles.signUpContainer}>
-            <Text style={styles.signUpText}>Already have an account?</Text>
+            <Text style={styles.signUpText}>Đã có tài khoản?</Text>
             <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
-              <Text style={styles.signUpLink}> LOG IN</Text>
+              <Text style={styles.signUpLink}> ĐĂNG NHẬP</Text>
             </TouchableOpacity>
           </View>
 
           {/* Social Login */}
-          <Text style={styles.orText}>Or</Text>
+          <Text style={styles.orText}>Hoặc</Text>
           <View style={styles.socialContainer}>
             <TouchableOpacity style={styles.socialButton}>
               <Icon name="facebook" size={24} color="#FFF" />
