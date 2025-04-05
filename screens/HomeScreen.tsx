@@ -13,7 +13,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { PieChart } from "react-native-chart-kit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-
+import {API_ENDPOINTS} from "../server_urls";
 const { width } = Dimensions.get("window");
 
 interface Transaction {
@@ -66,34 +66,28 @@ const HomeScreen = () => {
   const fetchData = async (token: string) => {
     try {
       // Fetch tổng quan tài chính
-      const overviewResponse = await fetch(
-        "http://192.168.1.13:8000/api/finance-overview/",
-        {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        }
-      );
+      const overviewResponse = await fetch(API_ENDPOINTS.FINANCE_OVERVIEW, {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
+      console.log("Overview Response Status:", overviewResponse.status);
 
       // Fetch giao dịch
-      const transactionsResponse = await fetch(
-        "http://192.168.1.13:8000/api/transactions/",
-        {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        }
-      );
+      const transactionsResponse = await fetch(API_ENDPOINTS.TRANSACTIONS, {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
+      console.log("Transactions Response Status:", transactionsResponse.status);
 
       // Fetch dữ liệu biểu đồ
-      const chartResponse = await fetch(
-        "http://192.168.1.13:8000/api/expense-categories/",
-        {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        }
-      );
+      const chartResponse = await fetch(API_ENDPOINTS.EXPENSE_CATEGORIES, {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
+      console.log("Chart Response Status:", chartResponse.status);
 
       // Xử lý lỗi HTTP
       if (!overviewResponse.ok || !transactionsResponse.ok || !chartResponse.ok) {
@@ -102,8 +96,13 @@ const HomeScreen = () => {
 
       // Parse dữ liệu JSON
       const overviewData = await overviewResponse.json();
+      console.log("Overview Data:", overviewData);
+      
       const transactionsData = await transactionsResponse.json();
-      const chartData = await chartResponse.json();
+      console.log("Transactions Data:", transactionsData);
+      
+      const chartDataRaw = await chartResponse.json();
+      console.log("Raw Chart Data from API:", chartDataRaw);
 
       // Cập nhật state
       setBalance(overviewData.balance || 0);
@@ -112,15 +111,18 @@ const HomeScreen = () => {
       setTransactions(transactionsData);
 
       // Chuyển đổi định dạng dữ liệu biểu đồ
-      const formattedChartData = chartData.map((item: any) => ({
+      const formattedChartData = chartDataRaw.map((item: any) => ({
         name: item.name,
         amount: item.amount,
         color: item.color || `#${Math.floor(Math.random() * 16777215).toString(16)}`,
         legendFontColor: "#333",
         legendFontSize: 14,
       }));
+      console.log("Formatted Chart Data:", formattedChartData);
 
       setChartData(formattedChartData);
+      console.log("Chart Data Set to State:", formattedChartData);
+
     } catch (error) {
       console.error("Fetch error:", error);
       Alert.alert("Lỗi", "Không thể tải dữ liệu");
@@ -143,6 +145,8 @@ const HomeScreen = () => {
       </View>
     );
   }
+
+  console.log("Rendering with Chart Data:", chartData); // Log trước khi render biểu đồ
 
   return (
     <View style={styles.container}>
@@ -242,8 +246,8 @@ const HomeScreen = () => {
   );
 };
 
+// Styles giữ nguyên như code gốc
 const styles = StyleSheet.create({
-  // Giữ nguyên các style như code gốc và thêm
   chartPlaceholder: {
     height: 200,
     justifyContent: "center",
@@ -308,16 +312,16 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   chartContainer: {
-      backgroundColor: "#fff",
-      borderRadius: 20, // Bo góc mạnh hơn
-      padding: 15,
-      marginHorizontal: 20,
-      marginBottom: 20,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 5 }, // Bóng dài hơn
-      shadowOpacity: 0.15,
-      shadowRadius: 10, // Độ mờ tăng
-      elevation: 10,
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 15,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 10,
   },
   transactionsContainer: {
     flex: 1,
@@ -378,22 +382,6 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
     marginTop: 20,
-  },
-  fab: {
-    position: "absolute",
-    bottom: 30,
-    right: 30,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#2ecc71",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
   },
 });
 

@@ -5,6 +5,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { RootStackParamList } from "@/Navigation/Navigation";
 import { StackNavigationProp } from "@react-navigation/stack";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {API_ENDPOINTS} from "../server_urls";
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, "LoginScreen">;
 
@@ -20,7 +21,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [secureText, setSecureText] = useState(true);
   const [rememberMe, setRememberMe] = useState(false);
 
-  const SERVER_URL = 'http://192.168.1.13:8000/api/login/'; // Đổi IP thành IP thật trong mạng
+  const SERVER_URL = API_ENDPOINTS.LOGIN; 
 
   const handleLogin = async () => {
     try {

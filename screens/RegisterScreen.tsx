@@ -5,6 +5,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Alert } from "react-native";
 import { Checkbox } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import {API_ENDPOINTS} from "../server_urls";
 
 type RegisterScreenNavigationProp = StackNavigationProp<RootStackParamList, "RegisterScreen">;
 type RegisterScreenRouteProp = RouteProp<RootStackParamList, "RegisterScreen">;
@@ -24,7 +25,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [secureTextConfirm, setSecureTextConfirm] = useState(true);
   const [agreeTerms, setAgreeTerms] = useState(false);
 
-  const SERVER_URL = 'http://192.168.1.13:8000/api/register/'; // Đổi IP thành IP thật trong mạng
+  const SERVER_URL = API_ENDPOINTS.REGISTER; 
 
   const handleRegister = async () => {
     try {
